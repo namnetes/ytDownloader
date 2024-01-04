@@ -34,7 +34,7 @@ def download_youtube_video():
         yd.download()
 
         # Enregistrement des informations dans le fichier de log
-        log_message = f"Title: {title}, Resolution: {resolution}, Filesize: {filesize}, Mimetype: {mimetype}"
+        log_message = f"Title: {title}; Resolution: {resolution}; Filesize: {filesize}; Mimetype: {mimetype}"
         logging.info(log_message)
 
         print("Téléchargement terminé.")
