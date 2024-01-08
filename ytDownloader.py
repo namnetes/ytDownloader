@@ -4,16 +4,44 @@ import logging
 import sys
 import argparse
 import re
+import os
+import platform
 from pytube import YouTube
 
 def setup_logging():
+    if platform.system() == "Windows":
+        logfile = r'$(os.path.expanduser("~")\ytDownloader.log'
+    else:
+        logfile = '/var/log/ytDowloader.log'
+    
+    print(f'log={logfile}')
+    
     logging.basicConfig(
-      filename='/var/log/ytdownloader.log',
+      filename=logfile,
       level=logging.INFO,
       format='%(asctime)s [%(levelname)s]: %(message)s'
     )
 
-def process_file(input_file):
+def read_proxy_info():
+    proxy_info_file = os.path.join(os.getcwd(), "proxy.txt")
+    
+    if os.path.exists(proxy_info_file):
+        with open(proxy_info_file, 'r') as file:
+            proxy_info = file.readline().strip()
+        
+        pattern = re.compile(r'proxy\s*=\s*(?:(?P<user>\S+)(?::(?P<password>\S+))?@)?(?P<url>\S+)')
+        match = pattern.match(proxy_info)
+        
+        if match:
+            user = match.group('user')
+            password = match.group('password')
+            url = match.group('url')
+
+            return {"user":user, "password":password, "host":url}
+        
+    return None
+
+""" def process_file(input_file):
     with open(input_file, 'r') as file:
         for line in file:
             url = line.strip()
@@ -30,7 +58,7 @@ def is_valid_url(url):
         parsed_url = urlparse(url)
         return parsed_url.scheme and parsed_url.netloc
     except ValueError:
-        return False
+        return False """
 
 def get_sorted_video_streams(yt):
     sq = yt.streams.filter(file_extension='mp4', only_video=True)
@@ -151,6 +179,12 @@ if __name__ == "__main__":
         sys.exit(0)
 
     url = input("Entrez l'URL YouTube : ")
+    proxy_info = read_proxy_info().lower()
+    if proxy_info:
+        print(f'{proxy_info["User"]}\n{proxy_info["Password"]}\n{proxy_info["url"]}')
+    else:
+        print("Aucun Proxy définit")
+
     yt = YouTube(url)
 
     sv = get_highest_video_resolution(yt, args.resolution)
